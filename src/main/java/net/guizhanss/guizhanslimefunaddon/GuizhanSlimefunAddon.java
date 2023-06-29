@@ -1,7 +1,7 @@
 package net.guizhanss.guizhanslimefunaddon;
 
 import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
-import net.guizhanss.guizhanlib.updater.GuizhanBuildsUpdater;
+import net.guizhanss.guizhanlibplugin.updater.GuizhanUpdater;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -27,9 +27,8 @@ public final class GuizhanSlimefunAddon extends JavaPlugin implements SlimefunAd
     }
 
     private void autoUpdate() {
-        if (getConfig().getBoolean("auto-update") &&
-            getDescription().getVersion().startsWith("Build")) {
-            new GuizhanBuildsUpdater(this, getFile(), "ybw0014", "GuizhanSlimefunAddon", "master", false).start();
+        if (getConfig().getBoolean("auto-update") && getDescription().getVersion().startsWith("Build")) {
+            GuizhanUpdater.start(this, getFile(), "ybw0014", "GuizhanSlimefunAddon", "master");
         }
     }
 
