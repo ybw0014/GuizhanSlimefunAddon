@@ -1,48 +1,55 @@
 package net.guizhanss.guizhanslimefunaddon;
 
-import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
-import net.guizhanss.guizhanlibplugin.updater.GuizhanUpdater;
+import java.io.File;
+import java.lang.reflect.Method;
+import java.util.logging.Level;
+
+import org.bukkit.plugin.Plugin;
+
+import io.github.thebusybiscuit.slimefun4.libraries.dough.updater.GitHubBuildsUpdater;
+
+import net.guizhanss.guizhanlib.slimefun.addon.AbstractAddon;
+import net.guizhanss.guizhanlib.updater.GuizhanBuildsUpdater;
+
 import org.bstats.bukkit.Metrics;
-import org.bukkit.plugin.java.JavaPlugin;
 
-public final class GuizhanSlimefunAddon extends JavaPlugin implements SlimefunAddon {
+public final class GuizhanSlimefunAddon extends AbstractAddon {
 
-    private static GuizhanSlimefunAddon instance;
-
-    @Override
-    public void onEnable() {
-        instance = this;
-
-        setupMetrics();
-        autoUpdate();
+    public GuizhanSlimefunAddon() {
+        super("ybw0014", "GuizhanSlimefunAddon", "master", "auto-update");
     }
 
     @Override
-    public void onDisable() {
-        instance = null;
+    public void enable() {
+        log(Level.INFO, "====================");
+        log(Level.INFO, "GuizhanSlimefunAddon");
+        log(Level.INFO, "     by ybw0014     ");
+        log(Level.INFO, "====================");
+    }
+
+    @Override
+    public void disable() {
     }
 
     private void setupMetrics() {
         new Metrics(this, 114514);
     }
 
-    private void autoUpdate() {
-        if (getConfig().getBoolean("auto-update") && getDescription().getVersion().startsWith("Build")) {
-            GuizhanUpdater.start(this, getFile(), "ybw0014", "GuizhanSlimefunAddon", "master");
+    @Override
+    protected void autoUpdate() {
+        if (getPluginVersion().startsWith("DEV")) {
+            String path = getGithubUser() + "/" + getGithubRepo() + "/" + getGithubBranch();
+            new GitHubBuildsUpdater(this, getFile(), path).start();
+        } else if (getPluginVersion().startsWith("Build")) {
+            try {
+                // use updater in lib plugin
+                Class<?> clazz = Class.forName("net.guizhanss.guizhanlibplugin.updater.GuizhanUpdater");
+                Method updaterStart = clazz.getDeclaredMethod("start", Plugin.class, File.class, String.class, String.class, String.class);
+                updaterStart.invoke(null, this, getFile(), getGithubUser(), getGithubRepo(), getGithubBranch());
+            } catch (Exception ignored) {
+                // use updater in lib
+                new GuizhanBuildsUpdater(this, getFile(), getGithubUser(), getGithubRepo(), getGithubBranch()).start();
+            }
         }
-    }
-
-    @Override
-    public JavaPlugin getJavaPlugin() {
-        return this;
-    }
-
-    @Override
-    public String getBugTrackerURL() {
-        return "https://github.com/ybw0014/GuizhanSlimefunAddon/issues";
-    }
-
-    public static GuizhanSlimefunAddon getInstance() {
-        return instance;
     }
 }
